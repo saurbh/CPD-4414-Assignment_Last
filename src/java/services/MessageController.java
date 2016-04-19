@@ -13,6 +13,9 @@ import java.util.List;
 import javax.faces.bean.ApplicationScoped;
 import javax.json.Json;
 import javax.json.stream.JsonParser;
+import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -35,8 +38,26 @@ public class MessageController {
     }
 
    
-    public void add(Message m){
-        mes.add(m);
+ public void add(Message m){
+        Connection conn;
+
+        try {
+            conn = utils.getConnection();
+            java.sql.Date sqlDate = new java.sql.Date(m.getDate().getTime());
+            PreparedStatement pst = conn.prepareStatement("Insert into message(id, title, contents, author, date) values(?,?,?,?,?)");
+
+            pst.setInt(1, m.getId());
+            pst.setString(2, m.getTitle());
+            pst.setString(3, m.getContents());
+            pst.setString(4, m.getAuthor());
+            pst.setDate(5, sqlDate);
+            
+             pst.executeUpdate();
+            getAll();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public void edit(int id, Message msg){
@@ -72,6 +93,23 @@ public class MessageController {
     }
     
     public List<Message> getAll(){
+         try {
+            Connection conn =utils.getConnection();
+             Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM message");
+
+            while (rs.next()) {
+                Message message = new Message(rs.getInt("id"),
+                        rs.getString("title"),
+                        rs.getString("contents"),
+                        rs.getString("author"),
+                        rs.getDate("date"));
+                mes.add(message);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         return mes;
     }
     
