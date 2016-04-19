@@ -60,15 +60,44 @@ public class MessageController {
         }
     }
     
-    public void edit(int id, Message msg){
+     public void edit(int id, Message msg){
         Message message = getById(id);
         remove(id);
         message = msg;
-        
+        Connection con;
+
+        try {
+            con = utils.getConnection();
+            java.sql.Date sqlDate = new java.sql.Date(msg.getDate().getTime());
+            PreparedStatement pst = con.prepareStatement("Update message SET title = ?, contents = ?, author = ?, date = ? where id = ?");
+
+            pst.setString(1, msg.getTitle());
+            pst.setString(2, msg.getContents());
+            pst.setString(3, msg.getAuthor());
+            pst.setDate(4, sqlDate);
+            pst.setInt(5, id);
+
+            pst.executeUpdate();
+            con.close();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        getAll();
     }
     public void remove(int id){
-        Message message = getById(id);
-        mes.remove(message);
+        Connection con;
+
+        try {
+            con = utils.getConnection();
+            PreparedStatement pst = con.prepareStatement("Delete from message where id = ? ");
+            pst.setInt(1, id);
+            pst.executeUpdate();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        getAll();
     }
     public Message getById(int id){
         for (Message p : mes) {
