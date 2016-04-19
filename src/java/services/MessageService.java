@@ -29,5 +29,74 @@ import javax.ws.rs.core.Response;
 @Path("/message")
 @RequestScoped
 public class MessageService {
+    List<Message> messageList;
+    MessageController mc = new MessageController();
 
+    /**
+     *
+     * @return
+     */
+    @GET
+    @Path("/v1/messages")
+
+    @Produces("applcation/json")
+    public JsonArray getAll() {
+        messageList = mc.getAll();
+        JsonArrayBuilder json = Json.createArrayBuilder();
+        for (Message m : messageList) {
+            json.add(m.toJSON());
+        }
+        return json.build();
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces("applcation/json")
+    public JsonObject getMessageByID(@PathParam("id") int id) {
+        return mc.getById(id).toJSON();
+    }
+
+    /**
+     *
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @GET
+    @Path("{startDate}/{endDate}")
+    @Produces("application/json")
+
+    public JsonArray getMEssageByDate(@PathParam("startDate") Date startDate, @PathParam("endDate") Date endDate) {
+         List<Message> message = mc.getFromTo(startDate, endDate);
+         JsonArrayBuilder json = Json.createArrayBuilder();
+        for (Message m : message) {
+            json.add(m.toJSON());
+        }
+        return json.build();
+
+    }
+
+    @POST
+    @Consumes("application/json")
+    public Response add(JsonObject json) {
+        Message m =new Message(json);
+        return Response.ok().build();
+
+    }
+
+    @DELETE
+    @Path("{id}")
+    public Response deleteMessageById(@PathParam("id") int id){
+         mc.remove(id);
+         return Response.ok().build();
+    }
+    
+    @PUT
+    @Consumes("application/json")
+    public Response editMessageById(JsonObject json){
+        int id = json.getInt("id");
+        Message m =new Message(json);
+        mc.edit(id, m);
+        return Response.ok().build();
+    }
 }
